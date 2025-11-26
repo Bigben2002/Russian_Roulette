@@ -1,280 +1,300 @@
-# 📘 Russian-Roulette-Project
+📘 Russian-Roulette-Project
+
 한성대학교 3학년 2학기 네트워크프로그래밍 프로젝트
 
-팀원  
-- **이경석 – 2171073** (Server Architecture & Core Logic)  
-- **김준현 – 2171062** (Client GUI & Item Features)
+팀원
 
----
+이경석 – 2171073 (Server Architecture & Core Logic)
 
-# 🎯 Russian Roulette — 2인 네트워크 게임 (Final Phase)
+김준현 – 2171062 (Client GUI & Item Features)
 
-본 프로젝트는 **Java + Swing GUI + TCP 소켓 통신**을 기반으로 구현한  
-**2인 온라인 러시안 룰렛 게임**입니다.
+1. 프로젝트 개요
 
-LAN 환경에서 두 명의 클라이언트가 서버에 접속하여  
-실시간 턴제 전투를 진행하도록 설계되었습니다.
+본 프로젝트는 Java(Swing GUI) + TCP 소켓 통신(ServerSocket/Socket) 을 이용하여
+2인의 플레이어가 LAN 환경에서 실시간으로 러시안 룰렛 게임을 진행할 수 있도록 구현한 네트워크 게임입니다.
 
-본 게임의 철학은 다음과 같습니다:
+개발환경
 
-- 서버가 모든 게임 상태(HP, Turn, Chamber, Items)를 관리하는 **Single Source of Truth**
-- 클라이언트는 입력 처리 및 UI 렌더링만 담당
-- 텍스트 기반 프로토콜로 명확한 통신 구조 유지
-- 멀티스레드 환경에서 안정적인 동기화
+Java 17 ~ Java 21
 
----
+Eclipse IDE / IntelliJ IDEA
 
-# 🧱 프로젝트 개요
+Windows / macOS 지원
 
-- **프로젝트명:** 러시안 룰렛 2인 네트워크 게임  
-- **개발환경:** Java 17~21 / Eclipse IDE / IntelliJ IDEA  
-- **사용 기술:** Swing GUI, TCP Socket 통신  
-- **네트워크 구조:** 서버 1대 + 클라이언트 2대(LAN)
+사용 기술
 
-> 같은 Wi-Fi 환경에서 서버 IP·포트를 입력하면  
-> 두 클라이언트가 자동으로 매칭됩니다.
+Swing GUI (2D UI 구성)
 
----
+TCP 소켓 통신 (UTF-8 기반 스트림)
 
-# 🧩 구현 목표 및 달성 현황
+멀티스레드 기반 서버 구조 (ClientHandler)
 
-## ✔ Final Phase (완료)
+직접 설계한 텍스트 기반 프로토콜
 
-- [x] 2인 매칭, 닉네임 교환, READY 동기화
-- [x] 6칸 랜덤 탄창 (실탄·공탄)
-- [x] 조준(AIM) SELF / ENEMY
-- [x] 발사(FIRE), HP 감소, 턴 교대
-- [x] SELF+BLANK → 턴 유지
-- [x] HP UI, Life 이미지, 탄창 인덱스 표시
-- [x] **아이템 3종 (Heal, Search, Bomb) 완전 구현**
-- [x] 서버 중심 동기화 시스템
-- [x] 채팅 기능
-- [x] EXIT_ROOM 처리
-- [ ] *(제외)* 사운드 기능
-- [ ] *(제외)* 카드 시스템 → 아이템으로 대체
+이미지 렌더링 기반 HUD(Display UI)
 
----
+네트워크 구조
 
-# 📁 디렉터리 구조
-```
-src/
- ├─ server/
- │   ├─ ServerGuiMain.java     # 서버 GUI 진입점
- │   ├─ ServerFrame.java       # 서버 로그 및 제어 창
- │   ├─ Room.java              # ★ 핵심 로직 (턴, 판정, 동기화)
- │   ├─ ClientHandler.java     # 클라이언트별 통신 스레드
- │   ├─ Protocol.java          # 통신 명령어 정의
- │   └─ ServerCore.java        # 소켓 Accept 관리
- └─ client/
-     ├─ ClientMain.java        # 클라이언트 진입점
-     ├─ StartFrame.java        # 접속 UI
-     ├─ RoomFrame.java         # 대기실 UI
-     ├─ GameRoomFrame.java     # ★ 인게임 UI & 키 입력 처리
-     ├─ ImageLoader.java       # 리소스 로딩 유틸리티
-     └─ NetworkClient.java     # 서버 송수신 스레드
-resources/
- └─ images/                    # 배경/플레이어/총/라이프/아이템 이미지 리소스
-```
----
+서버 1대 + 클라이언트 2대
 
-# 🔫 게임 규칙
+동일 LAN/Wi-Fi 환경에서 IP와 포트 입력 후 접속
 
-## 피해 판정
+서버 기준으로 모든 게임 로직이 처리되는 서버 권위(Server Authoritative) 구조
 
-| 조준 대상 | 탄 종류 | 결과 | 턴 변화 |
-|----------|---------|-------|---------|
-| SELF     | BLANK   | 아무 일 없음 | 유지 |
-| SELF     | BULLET  | HP -1 (Bomb 적용 시 -2) | 교대 |
-| ENEMY    | BLANK   | 아무 일 없음 | 교대 |
-| ENEMY    | BULLET  | 상대 HP -1 (Bomb 시 -2) | 교대 |
+2. 목표와 현황
+🎯 Final Phase 목표: “전투 시스템 + 아이템 전략 + GUI 연동 완성”
+구현 완료 내역
 
-- HP 초기값: **5**
-- HP가 0 또는 이하이면 즉시 GAME_OVER
-- 탄창 6칸 모두 소모 → 자동 재장전 + 아이템 일부 재지급
+✔ 2인 매칭 및 READY 동기화
 
----
+✔ 코인토스 기반 초깃턴 지정
 
-# 🎁 아이템 시스템
+✔ 6칸 탄창(실탄·공탄 랜덤)
 
-| 코드 | 이름 | 효과 |
-|------|------|-------|
-| H | Heal | HP +1 (최대 5) |
-| S | Search | 다음 탄환이 BULLET/BLANK인지 본인에게만 전달 |
-| B | Bomb | 다음 실탄 명중 시 피해 2배 |
+✔ 조준(AIM) SELF / ENEMY
 
-- 슬롯 최대 6개
-- 사용: 키보드 **1~6**
+✔ 발사(FIRE), HP 감소, 턴 교대
 
----
+✔ SELF + BLANK → 턴 유지
 
-# 🖥️ 실행 방법
+✔ HP UI, 탄창 인덱스, 라이프 이미지 구성
 
-## 서버 실행
+✔ 아이템 시스템 3종 구현 (Heal, Search, Bomb)
 
-1. `ServerGuiMain` 실행
-2. 포트 입력 (예: 7777)
-3. Start 클릭  
-4. 아래 메시지 확인
-[Server] Listening on 7777
+✔ 총 이미지 회전 애니메이션(좌/우/상/하)
 
-yaml
-코드 복사
+✔ GameRoomFrame에서 실시간 HUD 표시
 
----
+✔ 채팅 기능
 
-## 클라이언트 실행
+✔ 퇴장(EXIT_ROOM) 처리
 
-1. `ClientMain`을 두 번 실행
-2. Host/Port/Name 입력
-3. Connect → RoomFrame 이동
-4. 두 명 READY → GAME_START
+✖ (제외) 사운드 기능
 
----
+✖ (제외) 카드 시스템 → 아이템 시스템으로 완전 대체
 
-# 🎮 조작 키
+3. 게임 규칙
+3-1. 기본 사격 규칙
+조준 대상	탄 종류	결과	턴 변화
+SELF	BLANK	생존(Risk Success)	유지
+SELF	BULLET	HP -1	교대
+ENEMY	BLANK	아무 일 없음	교대
+ENEMY	BULLET	상대 HP -1	교대
 
-| 키 | 기능 |
-|----|---------|
-| ↑↓ | 조준 방향 변경 (SELF/ENEMY) |
-| SPACE | 발사 |
-| 1~6 | 아이템 사용 |
-| Chat | 채팅창 |
-| X | EXIT_ROOM 후 종료 |
+HP 초기값: 5
 
----
+HP가 0 이하가 되면 즉시 패배
 
-# 📡 서버 ↔ 클라이언트 통신 흐름
+6칸 탄창을 모두 소모하면 서버가 자동 재장전
 
-## (1) 접속 과정
+재장전 시 아이템도 일부 재지급됨
 
-Server → Client  
-HELLO
+3-2. 아이템 시스템 (전략 요소)
+코드	아이템명	효과 설명
+H	Heal	HP +1 회복 (최대 5)
+S	Search	다음 탄환이 BULLET/BLANK인지 확인
+B	Bomb	다음 명중 시 데미지가 2배
 
-arduino
-코드 복사
+아이템 특징
 
-Client → Server  
-닉네임 문자열
+인게임 HUD에 아이콘으로 표시
 
-yaml
-코드 복사
+사용 키는 숫자 1~6
 
-이후 Room 생성 → ROOM_CREATED 브로드캐스트
+Search의 결과는 해당 플레이어에게만 개인 메시지로 전달됨
 
----
+Bomb은 다음 FIRE 명령에만 적용됨
 
-## (2) READY 상태
+4. 시스템 구조
+전체 디렉터리 구조 (트리 깨짐 방지 버전)
 
-Client → Server  
-READY
+src/server
 
-pgsql
-코드 복사
+ServerGuiMain.java — 서버 GUI 실행
 
-Server → All  
-READY_STATE
+ServerFrame.java — 서버 로그 및 제어 화면
 
-yaml
-코드 복사
+ServerCore.java — ServerSocket 생성, Accept 담당
 
----
+Room.java — ★ 게임 핵심 로직 (턴·HP·탄창·아이템·판정·브로드캐스트)
 
-## (3) 게임 시작
+ClientHandler.java — 클라이언트별 메시지 수신 스레드
 
-Server → All  
+Protocol.java — 모든 통신 명령어 목록 상수화
+
+src/client
+
+ClientMain.java — 클라이언트 실행 진입점
+
+StartFrame.java — IP/Port/Name 입력 화면
+
+RoomFrame.java — 대기실 화면 (READY 대기)
+
+GameRoomFrame.java — ★ 인게임 HUD + 키 입력 처리
+
+NetworkClient.java — 서버 통신 스레드
+
+ImageLoader.java — 이미지 로딩 유틸리티
+
+resources/images
+
+배경 이미지
+
+캐릭터 이미지
+
+총 이미지
+
+라이프(HP) 아이콘
+
+아이템 아이콘
+
+5. 시스템 상세 로직 및 데이터 흐름 (Data Flow)
+5-1. 접속 및 핸드셰이크 과정
+
+ClientMain 실행 → StartFrame에서 Host/Port/Name 입력
+
+서버 접속 후 즉시 HELLO 수신
+
+닉네임 전송
+
+ServerCore에서 두 명의 연결이 확인되면 Room 생성
+
+게임 대기실(RoomFrame)로 진입
+
+5-2. READY → GAME_START 흐름
+
+Client → Server
+READY 전송
+
+Server → All
+READY_STATE 브로드캐스트
+
+두 명 모두 READY되면 서버는 아래 명령어를 순서대로 전송
+
 GAME_START
-RELOAD
-TURN
-AIM_UPDATE
-ITEM_UPDATE
 
-yaml
-코드 복사
+RELOAD (새 탄창 지급)
 
----
+AIM_UPDATE (기본 SELF 조준)
 
-## (4) 조준
+TURN (초기 턴 배정)
 
-Client → Server  
-AIM SELF
-AIM ENEMY
+ITEM_UPDATE (아이템 지급)
 
-yaml
-코드 복사
+5-3. AIM 데이터 흐름
 
----
+Client → Server
+AIM SELF 또는 AIM ENEMY
 
-## (5) 발사
+Server → All
+AIM_UPDATE WHO=P1 TARGET=SELF
 
-Client → Server  
+클라이언트는 해당 상태에 따라 총 이미지 회전
+
+5-4. FIRE 데이터 흐름
+
+Client → Server
 FIRE
 
-pgsql
-코드 복사
+서버(Room)가 처리하는 순서
 
-Server → All  
-FIRE_RESOLVE RESULT=... TARGET=... HP1=.. HP2=.. B_LEFT=.. K_LEFT=..
+턴 검사
 
-yaml
-코드 복사
+현재 탄 인덱스 확인 (BULLET / BLANK)
 
----
+데미지 계산 (Bomb 여부 포함)
 
-## (6) 아이템
+HP 업데이트
 
-Client → Server  
+탄창 인덱스 증가
+
+턴 교대
+
+승패 판정
+
+Server → All
+FIRE_RESOLVE RESULT=... HP1=x HP2=y
+
+5-5. 아이템 사용 흐름
+
+Client → Server
 USE_ITEM SLOT=n
 
-pgsql
-코드 복사
+Server 처리
 
-Server → All  
-ITEM_UPDATE WHO=P1 ITEMS=...
+아이템 효과 적용
 
-sql
-코드 복사
+Bomb/Lens/Heal 효과 수행
 
-Search 결과는  
+HUD 업데이트
+
+Server → All
+ITEM_UPDATE WHO=P2 ITEMS=H---B-
+
+Search 결과는 서버가 개인에게만 전송:
 PEEK_RESULT TYPE=BULLET
 
-yaml
-코드 복사
-처럼 **본인에게만 전송**
+5-6. 퇴장 흐름
 
----
-
-## (7) 퇴장
-
-Client → Server  
+Client → Server
 EXIT_ROOM
 
-arduino
-코드 복사
-
-Server → Other  
+Server → 다른 플레이어
 EXIT_ROOM
 
-yaml
-코드 복사
+GameRoomFrame에서 팝업 또는 HUD 표시 후 종료
 
----
+6. 실행방법
+서버 실행 방법
 
-# 👨‍💻 개발자 코멘트
+ServerGuiMain을 실행
 
-본 프로젝트는 **네트워크 프로그래밍 + GUI + 실시간 게임 로직**을 학습하기 위해 제작되었습니다.  
-서버(Room)가 모든 로직을 단일하게 관리하기 때문에  
-클라이언트 간 데이터 충돌 없이 안정적으로 게임을 진행할 수 있습니다.
+포트 입력 (예: 7777)
 
-구조가 단순하지 않으면서도 확장성이 높아  
-멀티룸, 관전자 모드, 로그/리플레이 기능을 추가하는 데도 적합합니다.
+Start 버튼 클릭
 
----
+로그에 “[Server] Listening on 7777” 출력
 
-# 📅 개발 진행 로그
+클라이언트 실행 방법
 
-- Phase-1: 기본 전투 시스템 구축  
-- Phase-2: GUI 개선 + 아이템 시스템 구축  
-- Final Phase: 전체 기능 안정화 및 프로젝트 완성  
-- 사운드/카드 기능은 범위 조정으로 제외
+ClientMain을 두 번 실행
 
----
+Host / Port / Name 입력
+
+Connect 버튼 클릭
+
+RoomFrame 대기
+
+두 명 모두 READY → 게임 자동 시작
+
+7. 조작 키
+키	설명
+↑ / ↓	조준 방향 변경 (SELF / ENEMY)
+SPACE	발사 (FIRE)
+1~6	아이템 사용
+Chat 버튼	채팅
+창 닫기(X)	EXIT_ROOM 전송 후 종료
+8. 기술 요약
+
+통신 방식: TCP 기반, UTF-8 스트림, 텍스트 프로토콜
+
+멀티스레드: 서버는 ClientHandler 2개를 각각 스레드로 운영
+
+프로토콜 구조: AIM, FIRE, USE_ITEM, READY, EXIT_ROOM, ITEM_UPDATE 등
+
+렌더링: Swing 기반 2D HUD
+
+데이터 관리: 서버(Room)가 HP, 턴, 탄창, 아이템을 단일 상태로 유지
+
+9. 최종본 요약 설명
+
+본 프로젝트는 실시간 네트워크 통신 + GUI 게임 로직 + 전략 시스템을
+모두 통합한 완성도 높은 학습 프로젝트입니다.
+
+서버는 모든 상태를 결정하는 핵심 엔진
+
+클라이언트는 입력 및 HUD 표현에 집중
+
+단순한 룰렛 게임을 넘어 전략 아이템, 회전 애니메이션, 실시간 HUD가 결합된 구조
+
+확장성: 멀티룸, 관전자 모드, 전투 로그, 스킨 시스템까지 확장 가능
