@@ -59,21 +59,21 @@ LAN 환경에서 두 명의 클라이언트가 서버에 접속하여
 
 src/
  ├─ server/
- │   ├─ ServerGuiMain.java     # 서버 GUI 실행
- │   ├─ ServerFrame.java       # 서버 제어/로그 창
- │   ├─ Room.java              # ★ 게임 핵심 로직
+ │   ├─ ServerGuiMain.java     # 서버 GUI 진입점
+ │   ├─ ServerFrame.java       # 서버 로그 및 제어 창
+ │   ├─ Room.java              # ★ 핵심 로직 (턴, 판정, 동기화)
  │   ├─ ClientHandler.java     # 클라이언트별 통신 스레드
- │   ├─ Protocol.java          # 모든 통신 명령어
- │   └─ ServerCore.java        # Accept 관리 + Room 생성
+ │   ├─ Protocol.java          # 통신 명령어 정의
+ │   └─ ServerCore.java        # 소켓 Accept 관리
  └─ client/
-     ├─ ClientMain.java        # 클라이언트 시작점
+     ├─ ClientMain.java        # 클라이언트 진입점
      ├─ StartFrame.java        # 접속 UI
-     ├─ RoomFrame.java         # 대기실(READY)
-     ├─ GameRoomFrame.java     # ★ 인게임 HUD + 키 입력 처리
-     ├─ ImageLoader.java       # 이미지 로더
+     ├─ RoomFrame.java         # 대기실 UI
+     ├─ GameRoomFrame.java     # ★ 인게임 UI & 키 입력 처리
+     ├─ ImageLoader.java       # 리소스 로딩 유틸리티
      └─ NetworkClient.java     # 서버 송수신 스레드
 resources/
- └─ images/                    # UI 이미지 리소스
+ └─ images/                    # 배경/플레이어/총/라이프/아이템 이미지 리소스
 
 ---
 
